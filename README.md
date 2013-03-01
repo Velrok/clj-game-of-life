@@ -1,13 +1,7 @@
 # clj-game-of-life
 
-A Clojure library designed to ... well, that part is up to you.
-
-## Usage
-
-FIXME
+A [Conway's Game of Life](http://en.wikipedia.org/wiki/Conway's_Game_of_Life) implementation in clojure.
 
 ## License
 
-Copyright © 2013 FIXME
-
-Distributed under the Eclipse Public License, the same as Clojure.
+Distributed under the MIT License.
