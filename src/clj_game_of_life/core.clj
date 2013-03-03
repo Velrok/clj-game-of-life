@@ -1,21 +1,31 @@
 (ns clj-game-of-life.core
   (:use quil.core))
 
-(def dim 3)
-
-(defn element
-  [x y]
-  (-> world (nth y) (nth x)))
+(def running true)
 
 (defrecord Cell [alive location])
-
-(defn revive [cell]
-  (assoc cell :alive 1))
 
 (defn kill [cell]
   (assoc cell :alive 0))
 
-(defn surronding [location]
+(defn revive [cell]
+  (assoc cell :alive 1))
+
+(def dim 3)
+
+(def world
+  (apply vector
+    (map  (fn [y]
+            (apply  vector
+                (map (fn [x] (agent (Cell. 0 [x y])))
+                     (range dim))))
+          (range dim))))
+
+(defn element
+  [[x y]]
+  (-> world (nth y) (nth x)))
+
+(defn surrounding [location]
   (let [[cell-x cell-y] location
         x (max (- cell-x 1) 0)
         y (max (- cell-y 1) 0)
@@ -36,19 +46,34 @@
     :alive (mod (inc (:alive cell))
                 2)))
 
-(def world
-  (apply vector
-    (map  (fn [y]
-            (apply  vector
-                (map (fn [x] (agent (Cell. 0 [x y])))
-                     (range dim))))
-          (range dim))))
+(defn live [cell]
+  (when running
+    (println "I'm living " cell)
+    ; (. Thread sleep 500)
+    ; (send-off *agent* live)
+    (println (:location cell))
+    (println (surrounding (:location cell)))
+    (let [surrounding-alive-count (count-alive-cells
+                                    (map (fn [_] @_)
+                                         (map element
+                                            (surrounding (:location cell)))))]
+      (println "alive count" surrounding-alive-count)
+      (if (zero? (:alive cell))
+        ;; dead cell. Needs 3 alice cells to revive
+        (if (= surrounding-alive-count 3)
+          (revive cell) ;; dead cell comes back to live
+          cell) ;; dead cell remains dead
+        ;; alive cell
+        (if (or (= surrounding-alive-count 2)
+                (= surrounding-alive-count 3))
+          cell ;; alive cell still alive
+          (kill cell)))))) ;; living cell dies
 
 (defn setup []
-  (smooth)                          ;;Turn on anti-aliasing
-  (frame-rate 1)                    ;;Set framerate to 1 FPS
-  (background 0))                 ;;Set the background colour to
-                                    ;;  a nice shade of grey.
+  (smooth)
+  (frame-rate 1)
+  (background 0))
+
 (defn draw []
   (stroke 0)
   (stroke-weight 0)
@@ -63,8 +88,8 @@
                 tile-width tile-height))))))
 
 (defn -main [& args]
-  (defsketch example                  ;;Define a new sketch named example
-  :title "Sketch"  ;;Set the title of the sketch
-  :setup setup                      ;;Specify the setup fn
-  :draw draw                        ;;Specify the draw fn
-  :size [323 200]))                  ;;You struggle to beat the golden ratio
+  (defsketch example
+  :title "Sketch"
+  :setup setup
+  :draw draw
+  :size [323 200]))
