@@ -2,6 +2,9 @@
   (:use quil.core))
 
 (def running true)
+(def fps 20)
+(def cell-sleep-time (round (/ 1000 2)))
+(def dim 40)
 
 (defrecord Cell [alive location])
 
@@ -11,13 +14,19 @@
 (defn revive [cell]
   (assoc cell :alive 1))
 
-(def dim 3)
+
+(defn one-out-of [x]
+  (if (>  (rand x)
+          (- x 1))
+    1
+    0))
 
 (def world
   (apply vector
     (map  (fn [y]
             (apply  vector
-                (map (fn [x] (agent (Cell. 0 [x y])))
+                (map (fn [x] (agent (Cell. (round (one-out-of 12))
+                                           [x y])))
                      (range dim))))
           (range dim))))
 
@@ -31,9 +40,10 @@
         y (max (- cell-y 1) 0)
         width  (- (min (+ cell-x 2) dim) x)
         height (- (min (+ cell-y 2) dim) y)]
-    (for [xi (range width)
-          yi (range height)]
-      [(+ x xi) (+ y yi)])))
+    (filter #(not= % location)
+            (for [xi (range width)
+                  yi (range height)]
+              [(+ x xi) (+ y yi)]))))
 
 (defn count-alive-cells [cells]
   (reduce 
@@ -48,16 +58,17 @@
 
 (defn live [cell]
   (when running
-    (println "I'm living " cell)
-    ; (. Thread sleep 500)
-    ; (send-off *agent* live)
-    (println (:location cell))
-    (println (surrounding (:location cell)))
+    ; (println "I'm living " cell)
+    (. Thread sleep cell-sleep-time)
+    ; (if (seq *agent*)
+    (send-off *agent* live)
+    ; (println (:location cell))
+    ; (println (surrounding (:location cell)))
     (let [surrounding-alive-count (count-alive-cells
                                     (map (fn [_] @_)
                                          (map element
                                             (surrounding (:location cell)))))]
-      (println "alive count" surrounding-alive-count)
+      ; (println "alive count" surrounding-alive-count)
       (if (zero? (:alive cell))
         ;; dead cell. Needs 3 alice cells to revive
         (if (= surrounding-alive-count 3)
@@ -69,9 +80,22 @@
           cell ;; alive cell still alive
           (kill cell)))))) ;; living cell dies
 
+(defn go []
+  (do
+    (def running true)
+    (dorun
+      (map  (fn [cell-agent] (send-off cell-agent live))
+            (flatten world)))
+    "World started."))
+
+(defn stop []
+  (do 
+    (def running false)
+    "World haltet"))
+
 (defn setup []
   (smooth)
-  (frame-rate 1)
+  (frame-rate fps)
   (background 0))
 
 (defn draw []
@@ -79,11 +103,11 @@
   (stroke-weight 0)
   (let [tile-width (/ (width) dim)
         tile-height (/ (height) dim)]
-    (doall
+    (dorun
       (for [x (range dim)
             y (range dim)]
         (do
-          (fill (* 255 @(element x y)))
+          (fill (* 255 (:alive @(element [x y]))))
           (rect (* x tile-width) (* y tile-height)
                 tile-width tile-height))))))
 
@@ -92,4 +116,5 @@
   :title "Sketch"
   :setup setup
   :draw draw
-  :size [323 200]))
+  :size [(* dim 15) (* dim 15)])
+  (go))
