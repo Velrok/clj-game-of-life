@@ -57,11 +57,11 @@
                 2)))
 
 (defn live [cell]
-  (when running
-    ; (println "I'm living " cell)
+  (do 
+    (if (and  running
+              (not (nil? *agent*)))
+      (send *agent* live))
     (. Thread sleep cell-sleep-time)
-    ; (if (seq *agent*)
-    (send-off *agent* live)
     ; (println (:location cell))
     ; (println (surrounding (:location cell)))
     (let [surrounding-alive-count (count-alive-cells
@@ -84,14 +84,30 @@
   (do
     (def running true)
     (dorun
-      (map  (fn [cell-agent] (send-off cell-agent live))
+      (map  (fn [cell-agent] (send cell-agent live))
             (flatten world)))
     "World started."))
 
 (defn stop []
-  (do 
+  (do
     (def running false)
     "World haltet"))
+
+(defn nuke []
+  "Kills all live."
+  (map  (fn [cell-agent] (send-off cell-agent kill))
+        (flatten world)))
+
+(defn revive-coords [coords]
+  (map  #(send (element %) revive)
+          coords))
+
+(defn sporn-block []
+  (revive-coords [[0 0] [1 0] [0 1] [1 1]]))
+
+(defn sporn-blinker []
+  (dosync 
+    (revive-coords [[1 1] [2 1] [3 1]])))
 
 (defn setup []
   (smooth)
