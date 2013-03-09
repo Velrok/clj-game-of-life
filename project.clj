@@ -6,4 +6,7 @@
   :main clj-game-of-life.core
   :dependencies [
     [org.clojure/clojure "1.4.0"]
-    [quil "1.6.0"]])
+    [quil "1.6.0"]
+    [speclj "2.5.0"]]
+  :test-paths ["spec"]
+  :plugins [[speclj "2.5.0"]])
