@@ -83,7 +83,7 @@
       (for [x (range (world-width world))
             y (range (world-height world))]
         (do
-          (fill (* 255 (element-at [x y])))
+          (fill (* 255 (element-at world [x y])))
           (rect (* x tile-width) (* y tile-height)
                 tile-width tile-height))))))
 
