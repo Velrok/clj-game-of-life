@@ -2,6 +2,7 @@
   (:use speclj.core
         clj-game-of-life.core))
 
+
 (describe "create-world"
   (with width 3)
   (with height 2)
@@ -9,6 +10,7 @@
   (it "creates a 2d vector with a given width and height"
     (should= [[0 0 0]
               [0 0 0]] (create-world @width @height))))
+
 
 (describe "element-at"
   (with test-world [[0 1]
@@ -82,14 +84,14 @@
 
 
 (describe "lifecycle"
-  (it "kills cells with less than 2 alive cells around"
+  (it "kills living cells with less than 2 alive cells around"
     (should= [[0 0 0]
               [0 0 0]
               [0 0 0]] (lifecycle  [[0 1 0]
                                     [0 1 0]
                                     [0 0 0]])))
 
-  (it "revives cells with 3 alive cells around"
+  (it "revives dead cells with 3 alive cells around"
     (should= [[0 0 0]
               [0 1 0]
               [0 0 0]] (lifecycle  [[0 1 0]

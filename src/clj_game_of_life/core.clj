@@ -41,16 +41,6 @@
   (reduce + 0
           (neighborhood world location)))
 
-(defn lifecycle[world]
-  (apply  vector
-          (map  (fn [y]
-                  (apply  vector
-                          (map (fn [x] (if (> 0 (alive-cells-around world [x y]))
-                                            1
-                                            0))
-                               (range (count (nth world y))))))
-                (range (count world)))))
-
 (defn element-at [world [x y]]
   (-> world (nth y) (nth x)))
 
@@ -68,7 +58,15 @@
     ;; dead cell
     (== 3 (alive-cells-around world location))))
 
-
+(defn lifecycle[world]
+  (apply  vector
+          (map  (fn [y]
+                  (apply  vector
+                          (map (fn [x] (if (will-life? world [x y])
+                                            1
+                                            0))
+                               (range (count (nth world y))))))
+                (range (count world)))))
 
 (defn element
   ([[x y]]
