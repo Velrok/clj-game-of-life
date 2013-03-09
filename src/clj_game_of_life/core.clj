@@ -2,13 +2,18 @@
   (:use quil.core))
 
 
-(defn create-world [width height]
+(def probabiliy [1 1 1 0])
+
+(defn create-world
+  ([width height]
   (apply vector
               (map  (fn [y]
                       (apply  vector
-                          (map (fn [x] 0)
+                          (map (fn [x] (get probabiliy (rand-int (count probabiliy))))
                                (range width))))
                     (range height))))
+  ([agent widht height]
+    (create-world widht height)))
 
 
 (defn world-width [world]
@@ -66,7 +71,28 @@
 
 
 (def fps 20)
-(def world (create-world 50 40))
+(def world (agent (create-world 50 40)))
+(def running false)
+
+(defn living [world]
+  (. Thread sleep (/ 1000 fps))
+  (when running
+    (send *agent* living))
+  (lifecycle world))
+
+
+(defn start []
+  (do
+    (def running true)
+    (send world living)))
+
+
+(defn stop []
+  (def running false))
+
+
+(defn reset[]
+  (send world create-world 50 40))
 
 
 (defn setup []
@@ -77,13 +103,13 @@
 (defn draw []
   (stroke 0)
   (stroke-weight 0)
-  (let [tile-width (/ (width) (world-width world))
-        tile-height (/ (height) (world-height world))]
+  (let [tile-width (/ (width) (world-width @world))
+        tile-height (/ (height) (world-height @world))]
     (dorun
-      (for [x (range (world-width world))
-            y (range (world-height world))]
+      (for [x (range (world-width @world))
+            y (range (world-height @world))]
         (do
-          (fill (* 255 (element-at world [x y])))
+          (fill (* 255 (element-at @world [x y])))
           (rect (* x tile-width) (* y tile-height)
                 tile-width tile-height))))))
 
@@ -92,4 +118,4 @@
   :title "Sketch"
   :setup setup
   :draw draw
-  :size [(* (world-width world) 15) (* (world-height world) 15)]))
+  :size [(* (world-width @world) 15) (* (world-height @world) 15)]))
