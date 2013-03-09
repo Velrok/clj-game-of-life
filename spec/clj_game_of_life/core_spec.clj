@@ -4,12 +4,19 @@
 
 
 (describe "create-world"
-  (with width 3)
-  (with height 2)
-
   (it "creates a 2d vector with a given width and height"
     (should= [[0 0 0]
-              [0 0 0]] (create-world @width @height))))
+              [0 0 0]] (create-world 3 2))))
+
+
+; (describe "world-width"
+;   (it "retuns the width of the world"
+;     (should= 3 (world-width (create-world 3 2)))))
+
+
+; (describe "world-height"
+;   (it "retuns the height of the world"
+;     (should= 2 (world-height (create-world 3 2)))))
 
 
 (describe "element-at"
